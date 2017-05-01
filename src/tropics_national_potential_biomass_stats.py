@@ -19,13 +19,13 @@ vars = ['AGBobs','AGBpot','AGBreg']
 # some other info
 DATADIR = './data/'
 REPORTDIR = './reports/'
-national_boundaries = '.shp'
+national_boundaries = '/home/dmilodow/DataStore_DTM/EOlaboratory/Areas/ne_50m_admin_0_countries_small_islands_removed.shp'
 
 # Filename for output report
 potAGB_report = REPORTDIR+'tropical_potAGB_0_25deg_national_summary.csv'
 
 # first up - load the features (so that country names can be written into summary)
-shapefile= fiona.open(shp)
+shapefile= fiona.open(national_boundaries)
 features = list(shapefile)
 N = len(features)
 
@@ -78,7 +78,7 @@ out.write('\n')
 
 # now loop through data and write each line of the file
 for i in range(0,N):
-    country = '?' # work this out
+    country = features[i]['properties']['name']
     out.write(country + ', ' + str(area_stats[i]['sum']))
     for vv in range(0,len(vars)):
         out.write(', ' + str(out_stats[vars[vv]][i]['sum']/area_stats[i]['sum']) + ', ' + str(out_stats[vars[vv]][i]['sum']))
