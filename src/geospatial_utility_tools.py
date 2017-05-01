@@ -1,17 +1,19 @@
 
 # a set of functions to calculate the area of a WGS84 pixel analytically
+# for WGS84 a = 6378137 metres; b = 6356752.3142 metres
 def calculate_area_of_ellipsoidal_slice(lat,a=6378137., b=6356752.3142):
 
     #convert lat to radians
     f = lat/360.*2*np.pi
 
     # calculating surface area from equator to latitude
-    e = np.sqrt(1 - (b/a)**2)]
+    e = np.sqrt(1 - (b/a)**2)
     zm = 1 - e*np.sin(f)
     zp = 1 + e*np.sin(f)
     area = np.pi * b**2 * (np.log(zp/zm) / (2*e) + np.sin(f) / (zp*zm))
     return area
 
+# returns area in square metres
 def calculate_WGS84_pixel_area(lat1,lat2,long1,long2):
 
     # distance between east and west boundaries = fraction of whole circle
@@ -23,6 +25,24 @@ def calculate_WGS84_pixel_area(lat1,lat2,long1,long2):
 
     # difference of these areas multiplied by fraction of 360 degrees taken up by
     # segment bounded by longitude values gives area
-    area = q * (np.max([a1,a2]) - np.min(a1,a2))
+    area = q * (np.max([a1,a2]) - np.min([a1,a2]))
 
     return area
+
+# this function produces an array of cell areas according to a specified range of latitudes and longitudes
+def calculate_cell_area_array(lat,long):
+    longs,lats = np.meshgrid(long,lat)
+    rows,cols = longs.shape
+    dx = long[1]-long[0]
+    dy = lat[1]-lat[0]
+
+    cell_area = np.zeros((rows,cols))
+    for rr in range (0,rows):
+        for cc in range(0,cols):
+            lat1 = lats[rr,cc]
+            lat2 = lat1+dy
+            long1 = longs[rr,cc]
+            long2 = long1+dx
+            cell_area[rr,cc] = calculate_WGS84_pixel_area(lat1,lat2,long1,long2)
+
+    return cell_area
