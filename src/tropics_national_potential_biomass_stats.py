@@ -51,7 +51,7 @@ for vv in range(0,len(vars)):
 areas_out = areas.copy()
 areas_out[np.isnan(ds.variables[vars[0]])] = np.nan
 area_file_prefix = DATADIR + 'tropics_cell_areas'
-EO.write_array_to_data_layer_GeoTiff(ds.variables[vars[vv]]*areas, geoTrans, area_file_prefix)
+EO.write_array_to_data_layer_GeoTiff(areas_out, geoTrans, area_file_prefix)
 
 
 #------------------------------------------------------------------------------------------------------
