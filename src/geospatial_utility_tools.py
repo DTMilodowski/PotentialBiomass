@@ -30,11 +30,22 @@ def calculate_WGS84_pixel_area(lat1,lat2,long1,long2):
     return area
 
 # this function produces an array of cell areas according to a specified range of latitudes and longitudes
-def calculate_cell_area_array(lat,long):
-    longs,lats = np.meshgrid(long,lat)
-    rows,cols = longs.shape
+# default units are sq. metres.  To change, specify area_scalar; e.g. for hactares -> area_scalar = 1./10.**4
+# Also have the option to distunguish between providing lat and long for cell midpoint (default), or lower
+# left corner
+def calculate_cell_area_array(lat,long,area_scalar=1.,cell_centred=True):
+
     dx = long[1]-long[0]
     dy = lat[1]-lat[0]
+
+    # shift lat and long so that they refer to cell boundaries if necessary
+    if cell_centred == True:
+        longs=long-dx/2.
+        lats = lat-dy/2.
+
+    longs,lats = np.meshgrid(long,lat)
+    rows,cols = longs.shape
+
 
     cell_area = np.zeros((rows,cols))
     for rr in range (0,rows):
@@ -45,4 +56,7 @@ def calculate_cell_area_array(lat,long):
             long2 = long1+dx
             cell_area[rr,cc] = calculate_WGS84_pixel_area(lat1,lat2,long1,long2)
 
+    # convert cell_area from sq. metres to desired units using scalar 
+    cell_area*=area_scalar
     return cell_area
+
