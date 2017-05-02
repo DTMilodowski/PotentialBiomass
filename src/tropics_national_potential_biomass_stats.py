@@ -26,6 +26,7 @@ vars = ['AGBobs','AGBpot','AGBreg']
 DATADIR = './data/'
 REPORTDIR = './reports/'
 national_boundaries = '/home/dmilodow/DataStore_DTM/EOlaboratory/Areas/ne_50m_admin_0_tropical_countries_small_islands_removed.shp'
+national_boundaries = '/home/dmilodow/DataStore_DTM/EOlaboratory/Areas/test.shp'
 
 # Filename for output report
 potAGB_report = REPORTDIR+'tropical_potAGB_0_25deg_national_summary.csv'
@@ -73,11 +74,11 @@ EO.write_array_to_data_layer_GeoTiff(areas_out, geoTrans, area_file_prefix)
 #------------------------------------------------------------------------------------------------------
 # Now we can use the geotiffs we've just created with rasterstats to get the summaries that we need
 # Let's start with the area variable before moving on
-area_stats = rs.zonal_stats(national_boundaries, area_file_prefix+'.tif', stats="count sum")
+area_stats = rs.zonal_stats(national_boundaries, area_file_prefix+'_data.tif', stats="count sum")
 
 """
 # QGIS alternative - not working at the moment!
-area_stats = QgsZonalStatistics(polygonLayer, area_file_prefix+'.tif','zonal_stats_',1)
+area_stats = QgsZonalStatistics(polygonLayer, area_file_prefix+'_data.tif','zonal_stats_',1)
 area_stats.calculateStatistics(None)
 """
 
@@ -85,7 +86,7 @@ area_stats.calculateStatistics(None)
 # variables as required, according to what is available (and wanted) in the original netcdf file
 out_stats = {}
 for vv in range(0,len(vars)):
-    raster = DATADIR + 'tropics_' + vars[vv] + '_total.tif'
+    raster = DATADIR + 'tropics_' + vars[vv] + '_total_data.tif'
     out_stats[vars[vv]] = rs.zonal_stats(national_boundaries, raster, stats="count sum")
     
 # Write report to file
