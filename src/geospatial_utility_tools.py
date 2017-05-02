@@ -1,4 +1,4 @@
-
+import numpy as np
 # a set of functions to calculate the area of a WGS84 pixel analytically
 # for WGS84 a = 6378137 metres; b = 6356752.3142 metres
 def calculate_area_of_ellipsoidal_slice(lat,a=6378137., b=6356752.3142):
