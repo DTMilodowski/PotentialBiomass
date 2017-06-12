@@ -22,6 +22,9 @@ NetCDF_file = '/home/dmilodow/DataStore_GCEL/AGB/AGBregpot.nc'
 # specify variables of interest - note this order will determine the order with which the stats are returned in the output file
 vars = ['AGBobs','AGBpot','AGBreg']
 
+# specify increase in resolution for dataset
+resampling_scalar = 3.  # this splits every cell into 9 subcells (i.e. 3x3) 
+
 # some other info
 DATADIR = './data/'
 REPORTDIR = './reports/'
@@ -46,7 +49,7 @@ polygonLayer = qgis.QgsVectorLayer(national_boundaries)
 # total area used in calculation.  That is, the input AGB arrays should be in units of Mg, not spatial densities i.e.:
 # Mh/ha (or similar).
 ds, geoTrans = EO.load_NetCDF(NetCDF_file,lat_var = 'lat', lon_var = 'lon')
-
+ds, geoTrans = resample_dataset(ds,geoTrans,vars,resampling_scalar)
 # ordering of geoTrans [ XMinimum, DataResX, 0, YMinimum, 0, DataResY ]
 rows, cols = ds.variables[vars[0]].shape
 latitude = np.arange(geoTrans[3],rows*geoTrans[5]+geoTrans[3],geoTrans[5])
