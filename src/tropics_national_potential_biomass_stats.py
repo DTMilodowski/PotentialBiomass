@@ -29,7 +29,7 @@ resampling_scalar = 3.  # this splits every cell into 9 subcells (i.e. 3x3)
 DATADIR = '../data/'
 REPORTDIR = '../reports/'
 national_boundaries = '/home/dmilodow/DataStore_DTM/EOlaboratory/Areas/ne_50m_admin_0_tropical_countries_small_islands_removed.shp'
-national_boundaries = '/home/dmilodow/DataStore_DTM/EOlaboratory/Areas/test.shp'
+#national_boundaries = '/home/dmilodow/DataStore_DTM/EOlaboratory/Areas/test.shp'
 
 # Filename for output report
 potAGB_report = REPORTDIR+'tropical_potAGB_0_25deg_national_summary.csv'
@@ -97,7 +97,7 @@ for vv in range(0,len(vars)):
     out_stats[vars[vv]] = rs.zonal_stats(national_boundaries, raster, stats="count sum")
     
 # Write report to file
-out = open(pot_AGB_report,'w')
+out = open(potAGB_report,'w')
 # First set up header
 out.write('Country, Area (Ha)')
 for vv in range(0,len(vars)):
@@ -108,7 +108,8 @@ out.write('\n')
 for i in range(0,N):
     country = features[i]['properties']['name']
     print country
-    out.write(country + ', ' + str(area_stats[i]['sum']))
+    out.write(country.encode('utf-8'))
+    out.write(', ' + str(area_stats[i]['sum']))
     for vv in range(0,len(vars)):
         out.write(', ' + str(out_stats[vars[vv]][i]['sum']/area_stats[i]['sum']) + ', ' + str(out_stats[vars[vv]][i]['sum']))
     out.write('\n')
