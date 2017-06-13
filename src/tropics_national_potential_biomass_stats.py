@@ -26,8 +26,8 @@ vars = ['AGBobs','AGBpot','AGBreg']
 resampling_scalar = 3.  # this splits every cell into 9 subcells (i.e. 3x3) 
 
 # some other info
-DATADIR = './data/'
-REPORTDIR = './reports/'
+DATADIR = '../data/'
+REPORTDIR = '../reports/'
 national_boundaries = '/home/dmilodow/DataStore_DTM/EOlaboratory/Areas/ne_50m_admin_0_tropical_countries_small_islands_removed.shp'
 national_boundaries = '/home/dmilodow/DataStore_DTM/EOlaboratory/Areas/test.shp'
 
@@ -51,10 +51,11 @@ polygonLayer = qgis.QgsVectorLayer(national_boundaries)
 ds, geoTrans = EO.load_NetCDF(NetCDF_file,lat_var = 'lat', lon_var = 'lon')
 ds, geoTrans = EO.resample_dataset(ds,geoTrans,vars,resampling_scalar)
 # ordering of geoTrans [ XMinimum, DataResX, 0, YMinimum, 0, DataResY ]
-rows, cols = ds.variables[vars[0]].shape
+#rows, cols = ds.variables[vars[0]].shape
+rows, cols = ds[vars[0]].shape
 latitude = np.arange(geoTrans[3],rows*geoTrans[5]+geoTrans[3],geoTrans[5])
 longitude =  np.arange(geoTrans[0],cols*geoTrans[1]+geoTrans[0],geoTrans[1])
-areas = geo.calculate_cell_area_array(latitude,longitude, area_scalar = 1./10.**4)
+areas = geo.calculate_cell_area_array(latitude,longitude, area_scalar = 1./10.**4,cell_centred=False)
 
 # loop through the variables, multiplying by cell areas to give values in Mg
 for vv in range(0,len(vars)):
@@ -71,7 +72,8 @@ for vv in range(0,len(vars)):
 # Also want to write cell areas to file.  However, as this will be compared against other layers, need to carry across
 # nodata values
 areas_out = areas.copy()
-areas_out[np.asarray(ds.variables[vars[0]])==-9999] = -9999
+#areas_out[np.asarray(ds.variables[vars[0]])==-9999] = -9999
+areas_out[np.asarray(ds[vars[0]])==-9999] = -9999
 area_file_prefix = DATADIR + 'tropics_cell_areas'
 EO.write_array_to_data_layer_GeoTiff(areas_out, geoTrans, area_file_prefix)
 
