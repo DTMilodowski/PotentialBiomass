@@ -40,8 +40,8 @@ def calculate_cell_area_array(lat,long,area_scalar=1.,cell_centred=True):
 
     # shift lat and long so that they refer to cell boundaries if necessary
     if cell_centred == True:
-        longs=long-dx/2.
-        lats = lat-dy/2.
+        long=long-dx/2.
+        lat = lat-dy/2.
 
     longs,lats = np.meshgrid(long,lat)
     rows,cols = longs.shape
