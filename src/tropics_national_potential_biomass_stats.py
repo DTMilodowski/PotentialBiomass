@@ -49,7 +49,7 @@ polygonLayer = qgis.QgsVectorLayer(national_boundaries)
 # total area used in calculation.  That is, the input AGB arrays should be in units of Mg, not spatial densities i.e.:
 # Mh/ha (or similar).
 ds, geoTrans = EO.load_NetCDF(NetCDF_file,lat_var = 'lat', lon_var = 'lon')
-ds, geoTrans = resample_dataset(ds,geoTrans,vars,resampling_scalar)
+ds, geoTrans = EO.resample_dataset(ds,geoTrans,vars,resampling_scalar)
 # ordering of geoTrans [ XMinimum, DataResX, 0, YMinimum, 0, DataResY ]
 rows, cols = ds.variables[vars[0]].shape
 latitude = np.arange(geoTrans[3],rows*geoTrans[5]+geoTrans[3],geoTrans[5])
@@ -61,8 +61,10 @@ for vv in range(0,len(vars)):
     print vars[vv]
     file_prefix = DATADIR + 'tropics_' + vars[vv] + '_total'
 
-    out_array = np.asarray(ds.variables[vars[vv]]) * areas
-    out_array[np.asarray(ds.variables[vars[vv]])==-9999]=-9999  # not sure why np.asarray step is needed but gets the job done
+    #out_array = np.asarray(ds.variables[vars[vv]]) * areas
+    #out_array[np.asarray(ds.variables[vars[vv]])==-9999]=-9999  # not sure why np.asarray step is needed but gets the job done
+    out_array = ds[vars[vv]] * areas
+    out_array[ds[vars[vv]]==-9999]=-9999  # not sure why np.asarray step is needed but gets the job done
     EO.write_array_to_data_layer_GeoTiff(out_array, geoTrans, file_prefix)
     out_array=None
 
