@@ -33,7 +33,7 @@ def calculate_WGS84_pixel_area(lat1,lat2,long1,long2):
 # default units are sq. metres.  To change, specify area_scalar; e.g. for hactares -> area_scalar = 1./10.**4
 # Also have the option to distunguish between providing lat and long for cell midpoint (default), or lower
 # left corner
-def calculate_cell_area_array(lat,long,area_scalar=1.,cell_centred=True):
+def calculate_cell_area(lat,long,area_scalar=1.,cell_centred=True):
 
     dx = long[1]-long[0]
     dy = lat[1]-lat[0]
@@ -60,3 +60,23 @@ def calculate_cell_area_array(lat,long,area_scalar=1.,cell_centred=True):
     cell_area*=area_scalar
     return cell_area
 
+
+def calculate_cell_area_array(lat,long,area_scalar = 1.,cell_centred=True):
+    dx = long[1]-long[0]
+    dy = lat[1]-lat[0]
+
+    # shift lat and long so that they refer to cell boundaries if necessary
+    if cell_centred == True:
+        long=long-dx/2.
+        lat = lat-dy/2.
+
+    longs,lats = np.meshgrid(long,lat)
+    rows,cols = longs.shape
+
+    q = np.abs(dx)/360.
+    a1 =  calculate_area_of_ellipsoidal_slice(lats)
+    a2 =  calculate_area_of_ellipsoidal_slice(lats+dy)
+
+    cell_area = q * (np.max([a1,a2],axis = 0) - np.min([a1,a2],axis = 0))
+    cell_area*=area_scalar
+    return cell_area
