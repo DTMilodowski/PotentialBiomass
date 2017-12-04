@@ -6,6 +6,7 @@ import matplotlib as mpl
 import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 
+sys.path.append('/home/dmilodow/DataStore_DTM/EOlaboratory/EOlab/src')
 import prepare_EOlab_layers as EO
 
 sys.path.append('/home/dmilodow/DataStore_DTM/FOREST2020/PotentialBiomass/src')
