@@ -71,7 +71,6 @@ seqpot_ds[seqpot_ds<0] = 0.
 
 forestclass[forestclass==0]=np.nan
 classes = np.unique(forestclass[~np.isnan(forestclass)])
-classes = classes[~np.isnan(
 nclass = classes.size
 
 agb = np.zeros(15)
