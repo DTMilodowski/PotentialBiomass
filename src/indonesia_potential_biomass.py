@@ -33,18 +33,22 @@ ForestCover_file = '/home/dmilodow/DataStore_DTM/FOREST2020/PartnerCountries/Ind
 
 ds,geoTrans1 = EO.load_NetCDF(NetCDF_file,lat_var = 'lat', lon_var = 'lon')
 forestclass, geoTrans2, coord_sys = io.load_GeoTIFF_band_and_georeferencing(ForestCover_file)
-
+forestclass = forestclass[2500:,200:6000]
 # Calculate reforestation sequestration potential
-cell_areas = ds.variables['areas']
+cell_areas = ds.variables['areas'][2500:,200:6000]
 
-nodata_mask = ds.variables['AGB_mean']==-9999
+nodata_mask = ds.variables['AGB_mean'][2500:,200:6000]==-9999
 
-agb_ds = ds.variables['AGB_mean'][:]*cell_areas/10.**4 # convert carbon density to total carbon. Note conversion from m2 to ha
+agb_ds = ds.variables['AGB_mean'][2500:,200:6000]*cell_areas/10.**4 # convert carbon density to total carbon. Note conversion from m2 to ha
 agb_ds[nodata_mask] = np.nan
-agbpot_ds = ds.variables['AGBpot_mean'][:]*cell_areas/10.**4 # convert carbon density to total carbon. Converting from m2 to ha
+agbpot_ds = ds.variables['AGBpot_mean'][2500:,200:6000]*cell_areas/10.**4 # convert carbon density to total carbon. Converting from m2 to ha
 agbpot_ds[nodata_mask] = np.nan
 
-forests_ds = ds.variables['forests'][:]
+agbdef_ds = agb_ds-agbpot_ds
+agbratio_ds = agbdef_ds/agbpot_ds
+
+
+forests_ds = ds.variables['forests'][2500:,200:6000]
 seqpot_ds = agbpot_ds-agb_ds
 
 # tidy up seqpot
@@ -70,17 +74,71 @@ seqpot_ds[seqpot_ds<0] = 0.
 # 15  - Primary intact degraded 2010, cleared 2012
 
 forestclass[forestclass==0]=np.nan
-classes = np.unique(forestclass[~np.isnan(forestclass)])
-nclass = classes.size
 
-agb = np.zeros(15)
-agbpot = np.zeros(15)
-seqpot = np.zeros(15)
+# create land cover maps
+forestclass2000 = forestclass.copy()
+forestclass2005 = forestclass.copy()
+forestclass2010 = forestclass.copy()
+forestclass2012 = forestclass.copy()
 
-for cc in range(0,nclass):
-    mask = forestclass==cc+1
-    agb[cc] = np.sum(agb_ds[mask])
-    agbpot[cc] = np.sum(agb_ds[mask])
-    seqpot[cc] = np.sum(seqpot_ds[mask])
-    
-    
+# 2000
+intact = np.any((forestclass==4,forestclass==5,forestclass==6,forestclass==7,forestclass==8,forestclass==9,forestclass==13,forestclass==14,forestclass==15),axis=0)
+degraded = np.any((forestclass==10,forestclass==11,forestclass==12),axis=0)
+forestclass2000[intact]=2
+forestclass2000[degraded]=1
+
+# 2005
+cleared = np.any((forestclass==4,forestclass==10),axis=0)
+intact = np.any((forestclass==5,forestclass==6,forestclass==8,forestclass==9,forestclass==15),axis=0)
+degraded = np.any((forestclass==7,forestclass==11,forestclass==12,forestclass==13,forestclass==14),axis=0)
+forestclass2005[intact]=2
+forestclass2005[degraded]=1
+forestclass2005[cleared]=3
+
+# 2010
+cleared = np.any((forestclass==4,forestclass==5,forestclass==10,forestclass==11,forestclass==13),axis=0)
+intact = np.any((forestclass==6,forestclass==9),axis=0)
+degraded = np.any((forestclass==7,forestclass==8,forestclass==12,forestclass==14,forestclass==15),axis=0)
+forestclass2010[intact]=2
+forestclass2010[degraded]=1
+forestclass2010[cleared]=3
+
+# 2012
+cleared = np.any((forestclass==4,forestclass==5,forestclass==6,forestclass==10,forestclass==11,forestclass==12,forestclass==13,forestclass==14,forestclass==15),axis=0)
+degraded = np.any((forestclass==7,forestclass==8,forestclass==9),axis=0)
+forestclass2012[degraded]=1
+forestclass2012[cleared]=3
+
+print '====================================================================='
+print '\tland cover class areas in 1000s of km'
+print '---------------------------------------------------------------------'
+print 'year,\t\tintact,\t\tdegraded,\tcleared,\ttotal'
+print '2000,\t\t%.0f,\t\t%.0f,\t\t%.0f,\t\t%.0f' % (np.sum(forestclass2000==2)/1000.,np.sum(forestclass2000==1)/1000.,np.sum(forestclass2000==3)/1000.,np.sum(~np.isnan(forestclass2000)/1000.))
+print '2005,\t\t%.0f,\t\t%.0f,\t\t%.0f,\t\t%.0f' % (np.sum(forestclass2005==2)/1000.,np.sum(forestclass2005==1)/1000.,np.sum(forestclass2005==3)/1000.,np.sum(~np.isnan(forestclass2005)/1000.))
+print '2010,\t\t%.0f,\t\t%.0f,\t\t%.0f,\t\t%.0f' % (np.sum(forestclass2010==2)/1000.,np.sum(forestclass2010==1)/1000.,np.sum(forestclass2010==3)/1000.,np.sum(~np.isnan(forestclass2010)/1000.))
+print '2012,\t\t%.0f,\t\t%.0f,\t\t%.0f,\t\t%.0f' % (np.sum(forestclass2012==2)/1000.,np.sum(forestclass2012==1)/1000.,np.sum(forestclass2012==3)/1000.,np.sum(~np.isnan(forestclass2012)/1000.))
+print '====================================================================='
+
+print '====================================================================='
+print '\tpotential biomass within each class, in 10^6 Mg C'
+print '---------------------------------------------------------------------'
+print 'year,\t\tintact,\t\tdegraded,\tcleared,\ttotal'
+print '2000,\t\t%.0f,\t\t%.0f,\t\t%.0f,\t\t%.0f' % (np.sum(agbpot_ds[forestclass2000==2])/10.**6.,np.sum(agbpot_ds[forestclass2000==1])/10.**6.,np.sum(agbpot_ds[forestclass2000==3])/10.**6.,np.sum(agbpot_ds/10.**6))
+print '2005,\t\t%.0f,\t\t%.0f,\t\t%.0f,\t\t%.0f' % (np.sum(agbpot_ds[forestclass2005==2])/10.**6.,np.sum(agbpot_ds[forestclass2005==1])/10.**6.,np.sum(agbpot_ds[forestclass2005==3])/10.**6.,np.sum(agbpot_ds/10.**6.))
+print '2010,\t\t%.0f,\t\t%.0f,\t\t%.0f,\t\t%.0f' % (np.sum(agbpot_ds[forestclass2010==2])/10.**6.,np.sum(agbpot_ds[forestclass2010==1])/10.**6.,np.sum(agbpot_ds[forestclass2010==3])/10.**6.,np.sum(agbpot_ds/10.**6.))
+print '2012,\t\t%.0f,\t\t%.0f,\t\t%.0f,\t\t%.0f' % (np.sum(agbpot_ds[forestclass2012==2])/10.**6.,np.sum(agbpot_ds[forestclass2012==1])/10.**6.,np.sum(agbpot_ds[forestclass2012==3])/10.**6.,np.sum(agbpot_ds/10.**6.))
+print '====================================================================='
+
+print '====================================================================='
+print ' AGB deficit within each class, in 10^6 Mg C (2005 only)'
+print '---------------------------------------------------------------------'
+print 'year,\t\tintact,\t\tdegraded,\tcleared,\ttotal'
+print '2005,\t\t%.0f,\t\t%.0f,\t\t%.0f,\t\t%.0f' % (np.sum(agbdef_ds[forestclass2005==2])/10.**6.,np.sum(agbdef_ds[forestclass2005==1])/10.**6.,np.sum(agbdef_ds[forestclass2005==3])/10.**6.,np.sum(agbdef_ds/10.**6.))
+print '====================================================================='
+
+print '====================================================================='
+print ' Average ratio of deficit to potential agb (2005 only)'
+print '---------------------------------------------------------------------'
+print 'year,\t\tintact,\t\tdegraded,\tcleared,\ttotal'
+print '2005,\t\t%.3f,\t\t%.3f,\t\t%.3f,\t\t%.3f' % (np.mean(agbratio_ds[forestclass2012==2]),np.mean(agbratio_ds[forestclass2012==1]),np.mean(agbratio_ds[forestclass2012==3]),np.mean(agbratio_ds[~np.isnan(forestclass2012)]))
+print '====================================================================='
