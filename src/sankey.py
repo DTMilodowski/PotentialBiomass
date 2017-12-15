@@ -66,14 +66,14 @@ def plot_sankey(axis, A, x_locs = np.array([]), colours = np.array([]), colourma
 
     if x_locs.size==0:
         x_locs = np.arange(n_steps)+1.
-    patch_width = path_width_fraction*(x_locs[0]-x_locs[-1]/float(n_steps)) 
+    patch_width = patch_width_fraction*(x_locs[0]-x_locs[-1]/float(n_steps)) 
         
     # loop through timesteps and fill in class abundances and path details
     for cc in range(0,n_class):
         for tt in range(0,n_steps):
             class_abundance[cc,tt] = np.sum(A[:,tt]==classes[cc])
         for cc2 in range(0,n_class):
-            for tt in range(0,n_tsteps-1):
+            for tt in range(0,n_steps-1):
                 paths_i[cc*n_class+cc2,tt] = np.sum(np.all((A[:,tt]==classes[cc],A[:,tt+1]==classes[cc2])))
                 paths_f[cc2*n_class+cc,tt] = np.sum(np.all((A[:,tt+1]==classes[cc2],A[:,tt]==classes[cc])))
 
