@@ -76,15 +76,17 @@ def plot_sankey(A, x_locs = np.array([]), colours = np.array([]), colourmap = 'v
             class_abundance[cc,tt] = np.sum(A[:,tt]==classes[cc])
         for cc2 in range(0,n_class):
             for tt in range(0,n_steps-1):
-                paths_i[cc*n_class+cc2,tt] = np.sum(np.all((A[:,tt]==classes[cc],A[:,tt+1]==classes[cc2])))
-                paths_f[cc2*n_class+cc,tt] = np.sum(np.all((A[:,tt+1]==classes[cc2],A[:,tt]==classes[cc])))
+                paths_i[cc*n_class+cc2,tt] = np.sum(np.all((A[:,tt]==classes[cc],A[:,tt+1]==classes[cc2]),axis=0))
+                paths_f[cc2*n_class+cc,tt] = np.sum(np.all((A[:,tt]==classes[cc],A[:,tt+1]==classes[cc2]),axis=0))
 
     # Now get the cumsum of the classes and paths so that we can plot the sankey
     # diagram
+    print class_abundance.sum(axis=0)
     class_ulim = np.cumsum(class_abundance,axis=0)
     class_llim = np.zeros(class_ulim.shape)
     class_llim[1:,:] = class_ulim[:-1,:]
     
+    print paths_i.sum(axis=0)
     paths_i_ulim = np.cumsum(paths_i,axis=0)
     paths_i_llim = np.zeros(paths_i_ulim.shape)
     paths_i_llim[1:,:] = paths_i_ulim[:-1,:]
@@ -128,7 +130,7 @@ def plot_sankey(A, x_locs = np.array([]), colours = np.array([]), colourmap = 'v
         x0 = (t2+t1)/2.
         y_prime = 1./(1.+np.exp(-k*(x-x0)))
         # now plot connectors
-        for cc in range(0,n_class):
+        for cc in range(0,n_class**2):
             UL = paths_i_ulim[cc,tt]
             LL = paths_i_llim[cc,tt]
             UR = paths_f_ulim[cc,tt]
