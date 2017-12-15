@@ -41,16 +41,13 @@ plt.register_cmap(name='magma', cmap=cmaps.magma)
 plt.set_cmap(cmaps.viridis)
 
 # This is the plotting script
-def plot_sankey(axis,A,x_locs = None,colours = None,colourmap = None,patch_width=None):
+def plot_sankey(axis, A, x_locs = np.array([]), colours = np.array([]), colourmap = 'viridis', patch_width_fraction=0.1):
     
     colours_specified = True # will use colourmap if colours not specified
-    if colours not in locals():
+    if colours.size==0:
         colours_specified = False
-        if colourmap in locals():
-            cmap = cm.get_cmap(colourmap)
-        else:
-            cmap = cm.get_cmap('viridis') # default colour scheme
-    
+        cmap = cm.get_cmap(colourmap)
+        
     # find classes
     classes = np.unique(A)
     n_points,n_steps = A.shape
@@ -67,11 +64,8 @@ def plot_sankey(axis,A,x_locs = None,colours = None,colourmap = None,patch_width
     if colours_specified == False:
         colours = cmap(scale)
 
-    if x_locs not in locals():
+    if x_locs.size==0:
         x_locs = np.arange(n_steps)+1.
-    if patch_width_fraction not in locals():
-        # default patch width is 10% of average interval
-        path_width_fraction=0.1
     patch_width = path_width_fraction*(x_locs[0]-x_locs[-1]/float(n_steps)) 
         
     # loop through timesteps and fill in class abundances and path details
