@@ -31,7 +31,17 @@ plt.set_cmap(cmaps.viridis)
 # This is the plotting script
 def plot_sankey(axis,A,date_time = None,colours = None):
 
+    # find classes
     classes = np.unique(A)
+    n_points,n_steps = A.shape
+    n_classes = classes.size
+    class_abundance = np.zeros((n_classes,n_steps))
+    class_abundance_cum = np.zeros((n_classes,n_steps))
+
+    # there are n_classes**2 possible paths to consider for plotting
+    cumulative_paths = np.zeros((n_classes**2,n_steps))
+    cumulative_paths_cum = np.zeros((n_classes**2,n_steps))
+    
     
     
     return 0
