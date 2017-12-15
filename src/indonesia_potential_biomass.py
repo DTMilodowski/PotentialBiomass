@@ -24,6 +24,9 @@ plt.register_cmap(name='plasma', cmap=cmaps.plasma)
 plt.register_cmap(name='magma', cmap=cmaps.magma)
 plt.set_cmap(cmaps.viridis)
 
+import sankey
+
+
 #plt.figure(1, facecolor='White',figsize=[2, 1])
 #plt.show()
 
@@ -142,3 +145,22 @@ print '---------------------------------------------------------------------'
 print 'year,\t\tintact,\t\tdegraded,\tcleared,\ttotal'
 print '2005,\t\t%.3f,\t\t%.3f,\t\t%.3f,\t\t%.3f' % (np.mean(agbratio_ds[forestclass2012==2]),np.mean(agbratio_ds[forestclass2012==1]),np.mean(agbratio_ds[forestclass2012==3]),np.mean(agbratio_ds[~np.isnan(forestclass2012)]))
 print '====================================================================='
+
+
+# Plot sankey diagram!
+year = np.array([2000,2005,2010,2012])
+sankey_2000 = forestclass2000.reshape(forestclass2000.size)
+sankey_2000 = sankey_2000[np.isfinite(sankey_2000)]
+sankey_2005 = forestclass2005.reshape(forestclass2005.size)
+sankey_2005 = sankey_2005[np.isfinite(sankey_2005)]
+sankey_2010 = forestclass2010.reshape(forestclass2010.size)
+sankey_2010 = sankey_2010[np.isfinite(sankey_2010)]
+sankey_2012 = forestclass2012.reshape(forestclass2012.size)
+sankey_2012 = sankey_2012[np.isfinite(sankey_2012)]
+
+sankey_array = np.asarray(sankey_2000,sankey_2005,sankey_2010,sankey_2012).transpose()
+
+fig = plt.figure(1, facecolor='White',figsize=[12,12]) 
+ax= plt.subplot2grid((1,1),(0,0))
+sankey.plot_sankey(ax,sankey_array,year)
+plt.show()
