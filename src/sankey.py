@@ -41,7 +41,9 @@ plt.register_cmap(name='magma', cmap=cmaps.magma)
 plt.set_cmap(cmaps.viridis)
 
 # This is the plotting script
-def plot_sankey(axis, A, x_locs = np.array([]), colours = np.array([]), colourmap = 'viridis', patch_width_fraction=0.1):
+def plot_sankey(A, x_locs = np.array([]), colours = np.array([]), colourmap = 'viridis', patch_width_fraction=0.1):
+    fig = plt.figure(1, facecolor='White',figsize=[12,12]) 
+    axis= plt.subplot2grid((1,1),(0,0))
     
     colours_specified = True # will use colourmap if colours not specified
     if colours.size==0:
@@ -66,7 +68,7 @@ def plot_sankey(axis, A, x_locs = np.array([]), colours = np.array([]), colourma
 
     if x_locs.size==0:
         x_locs = np.arange(n_steps)+1.
-    patch_width = patch_width_fraction*(x_locs[0]-x_locs[-1]/float(n_steps)) 
+    patch_width = patch_width_fraction*(x_locs[0]-x_locs[-1])/float(n_steps)
         
     # loop through timesteps and fill in class abundances and path details
     for cc in range(0,n_class):
@@ -107,7 +109,7 @@ def plot_sankey(axis, A, x_locs = np.array([]), colours = np.array([]), colourma
             box = np.array([UL,UR,LR,LL])
             polygon = Polygon(box,True,ec='0.5',fc=colours[cc])
             patches.append(polygon)
-            
+    
     p_class = PatchCollection(patches, match_original=True)
     axis.add_collection(p_class)
 
@@ -122,10 +124,9 @@ def plot_sankey(axis, A, x_locs = np.array([]), colours = np.array([]), colourma
         t2 = x_locs[tt+1]
 
         # loop through the paths.
-        x = np.arange(t1,t2,0.01)
+        x = np.arange(t1,t2,0.1)
         x0 = (t2+t1)/2.
         y_prime = 1./(1.+np.exp(-k*(x-x0)))
-
         # now plot connectors
         for cc in range(0,n_class):
             UL = paths_i_ulim[cc,tt]
@@ -137,7 +138,7 @@ def plot_sankey(axis, A, x_locs = np.array([]), colours = np.array([]), colourma
             upper_limit = UL + L_u*y_prime
             L_l = LR-LL
             lower_limit = LL + L_l*y_prime
-
+            print t1,t2, UL, UR, LL, LR
             axis.fill_between(x,lower_limit,upper_limit,color='0.5',alpha=0.25)
             
     return 0
