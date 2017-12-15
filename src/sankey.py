@@ -18,6 +18,10 @@
 #===============================================================================
 import numpy as np
 from matplotlib import pyplot as plt
+from mpl_toolkits.axes_grid1 import make_axes_locatable
+from matplotlib import rcParams
+from matplotlib.patches import Polygon
+from matplotlib.collections import PatchCollection
 
 # Get perceptionally uniform colourmaps
 sys.path.append('/home/dmilodow/DataStore_DTM/FOREST2020/EOdata/EO_data_processing/src/plot_EO_data/colormap/')
@@ -27,6 +31,8 @@ plt.register_cmap(name='inferno', cmap=cmaps.inferno)
 plt.register_cmap(name='plasma', cmap=cmaps.plasma)
 plt.register_cmap(name='magma', cmap=cmaps.magma)
 plt.set_cmap(cmaps.viridis)
+
+
 
 # This is the plotting script
 def plot_sankey(axis,A,date_time = None,colours = None):
