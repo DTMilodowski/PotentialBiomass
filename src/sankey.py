@@ -40,14 +40,28 @@ def plot_sankey(axis,A,date_time = None,colours = None):
     # find classes
     classes = np.unique(A)
     n_points,n_steps = A.shape
-    n_classes = classes.size
-    class_abundance = np.zeros((n_classes,n_steps))
-    class_abundance_cum = np.zeros((n_classes,n_steps))
+    n_class = classes.size
+    class_abundance = np.zeros((n_class,n_steps))
 
-    # there are n_classes**2 possible paths to consider for plotting
-    cumulative_paths = np.zeros((n_classes**2,n_steps))
-    cumulative_paths_cum = np.zeros((n_classes**2,n_steps))
+    # there are n_class**2 possible paths to consider for plotting
+    paths_i = np.zeros((n_class**2,n_steps-1))
+    paths_f = np.zeros((n_class**2,n_steps-1))
     
-    
+    # loop through timesteps and fill in class abundances
+    for cc in range(0,n_class):
+        for tt in range(0,n_steps):
+            class_abundance[cc,tt] = np.sum(A[:,tt]==classes[cc])
+        for cc2 in range(0,n_class):
+            for tt in range(0,n_tsteps-1):
+                paths_i[cc*n_class+cc2,tt] = np.sum(np.all((A[:,tt]==classes[cc],A[:,tt+1]==classes[cc2])))
+                paths_f[cc2*n_class+cc,tt] = np.sum(np.all((A[:,tt+1]==classes[cc2],A[:,tt]==classes[cc])))
+
+    # Now get the cumsum of the classes and paths so that we can plot the sankey
+    # diagram
+    class_abundance_cum = np.cumsum(class_abundance,axis=0)
+    paths_i_cum = np.cumsum(paths_i,axis=0)
+    paths_f_cum = np.cumsum(paths_f,axis=0)
+
+    # Now we have everything that we need to plot the diagram
     
     return 0
