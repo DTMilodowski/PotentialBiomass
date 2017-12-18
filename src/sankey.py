@@ -111,8 +111,66 @@ def plot_sankey_from_class_timeseries(axis,A, x_locs = np.array([]), colours = n
 # The cols correspond with the new class at each timestep
 # The value of the matric represents the flux from one class type to another in the
 # timestep.
-def plot_sankey_generic:
+# So for a three class system, with classes i,j,k, at each timestep F is:
+#
+#       i:i   i:j   i:k
+# F = ( j:i   j:j   j:k )
+#       k:i   j:k   k:k
 
+def plot_sankey_generic(axis,F, x_locs = np.array([]), colours = np.array([]), colourmap = 'viridis', patch_width_fraction=0.1):
+    # basic info
+    n_class,temp,n_fluxes = F.shape
+    n_steps = n_fluxes+1 # fences and fence posts
+    
+    colours_specified = True # will use colourmap if colours not specified
+    if colours.size==0:
+        colours_specified = False
+        cmap = cm.get_cmap(colourmap)
+        
+    # get colours for classes from cmap if required
+    scale = np.arange(0.,n_class)
+    scale /=scale.max()
+    if colours_specified == False:
+        colours = cmap(scale)
+
+    if x_locs.size==0:
+        x_locs = np.arange(n_steps)+1.
+    patch_width = patch_width_fraction*(x_locs[0]-x_locs[-1])/float(n_steps)
+        
+    # get class sizes for each timestep
+    class_abundance = np.zeros((n_class,n_steps))
+    class_abundance[:,:n_fluxes]=np.sum(F,axis=1)
+    class_abundance[:,-1]=np.sum(F[:,-1,:],axis=1)
+
+    # Now get the cumsum of the classes
+    class_ulim = np.cumsum(class_abundance,axis=0)
+    class_llim = np.zeros(class_ulim.shape)
+    class_llim[1:,:] = class_ulim[:-1,:]
+            
+    # Now deal with the path details
+    # there are n_class**2 possible paths to consider for plotting
+    paths = F.copy()
+    
+    # get starting ulim and llim for the paths
+    paths_vec = paths.reshape(n_class**2,n_steps-1)
+    paths_i_ulim = np.cumsum(paths_vec,axis=0)
+    paths_i_llim = paths_i_ulim-paths_vec
+
+    # now need to find the end ulim and llim
+    paths_f_increment = np.cumsum(paths,axis=0)
+    paths_f_u=np.zeros(paths.shape)
+    paths_f_l=np.zeros(paths.shape)
+    
+    for cc1 in range(0,n_class):
+        for cc2 in range(0,n_class):
+            paths_f_u[cc1,cc2,:] = class_llim[cc2,1:]+paths_f_increment[cc1,cc2,:]
+            paths_f_l[cc1,cc2,:] = paths_f_u[cc1,cc2,:]-paths[cc1,cc2,:]
+            
+    paths_f_ulim = paths_f_u.reshape(n_class**2,n_steps-1)
+    paths_f_llim = paths_f_l.reshape(n_class**2,n_steps-1)
+
+    # Now we have everything that we need to plot the diagram
+    plot_sankey(axis, class_ulim, class_llim, paths_i_ulim, paths_i_llim, paths_f_ulim, paths_f_llim, x_locs, colours, patch_width)
 
     
 # This is the basic plotting script
