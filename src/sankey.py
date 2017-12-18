@@ -104,7 +104,14 @@ def plot_sankey_from_class_timeseries(axis,A, x_locs = np.array([]), colours = n
     # Now we have everything that we need to plot the diagram
     plot_sankey(axis, class_ulim, class_llim, paths_i_ulim, paths_i_llim, paths_f_ulim, paths_f_llim, x_locs, colours, patch_width)
 
-
+# This is the plotting script, adapted to now take in a matrix of fluxes between classes
+# rather than the raw class maps. This enables more generic use.
+# The input matrix F should have 3 dimensions: n_class*n_class*n_steps
+# The rows correspond with the initial class at each timestep
+# The cols correspond with the new class at each timestep
+# The value of the matric represents the flux from one class type to another in the
+# timestep.
+def plot_sankey_generic:
 
 
     
