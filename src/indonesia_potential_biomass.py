@@ -160,6 +160,7 @@ sankey_2012 = sankey_2012[np.isfinite(sankey_2012)]
 
 sankey_array = np.array([sankey_2000,sankey_2005,sankey_2010,sankey_2012]).transpose()
 
-#fig = plt.figure(1, facecolor='White',figsize=[12,12]) 
-sankey.plot_sankey(sankey_array,year)
+fig = plt.figure(1, facecolor='White',figsize=[12,12]) 
+axis= plt.subplot2grid((1,1),(0,0))
+sankey. plot_sankey_from_class_timeseries(axis,sankey_array,x_locs=year)
 plt.show()
