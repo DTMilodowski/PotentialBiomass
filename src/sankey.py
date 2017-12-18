@@ -41,10 +41,8 @@ plt.register_cmap(name='magma', cmap=cmaps.magma)
 plt.set_cmap(cmaps.viridis)
 
 # This is the plotting script
-def plot_sankey(A, x_locs = np.array([]), colours = np.array([]), colourmap = 'viridis', patch_width_fraction=0.1):
-    fig = plt.figure(1, facecolor='White',figsize=[12,12]) 
-    axis= plt.subplot2grid((1,1),(0,0))
-    
+def plot_sankey(axis,A, x_locs = np.array([]), colours = np.array([]), colourmap = 'viridis', patch_width_fraction=0.1):
+
     colours_specified = True # will use colourmap if colours not specified
     if colours.size==0:
         colours_specified = False
@@ -57,8 +55,7 @@ def plot_sankey(A, x_locs = np.array([]), colours = np.array([]), colourmap = 'v
     class_abundance = np.zeros((n_class,n_steps))
 
     # there are n_class**2 possible paths to consider for plotting
-    paths_i = np.zeros((n_class**2,n_steps-1))
-    paths_f = np.zeros((n_class**2,n_steps-1))
+    paths = np.zeros((n_class,n_class,n_steps-1))
 
     # get colours for classes from cmap if required
     scale = np.arange(0.,n_class)
@@ -70,32 +67,75 @@ def plot_sankey(A, x_locs = np.array([]), colours = np.array([]), colourmap = 'v
         x_locs = np.arange(n_steps)+1.
     patch_width = patch_width_fraction*(x_locs[0]-x_locs[-1])/float(n_steps)
         
-    # loop through timesteps and fill in class abundances and path details
+    # loop through timesteps and fill in class abundances
     for cc in range(0,n_class):
         for tt in range(0,n_steps):
             class_abundance[cc,tt] = np.sum(A[:,tt]==classes[cc])
-        for cc2 in range(0,n_class):
-            for tt in range(0,n_steps-1):
-                paths_i[cc*n_class+cc2,tt] = np.sum(np.all((A[:,tt]==classes[cc],A[:,tt+1]==classes[cc2]),axis=0))
-                paths_f[cc2*n_class+cc,tt] = np.sum(np.all((A[:,tt]==classes[cc],A[:,tt+1]==classes[cc2]),axis=0))
 
-    # Now get the cumsum of the classes and paths so that we can plot the sankey
-    # diagram
-    print class_abundance.sum(axis=0)
+    # Now get the cumsum of the classes
     class_ulim = np.cumsum(class_abundance,axis=0)
     class_llim = np.zeros(class_ulim.shape)
     class_llim[1:,:] = class_ulim[:-1,:]
-    
-    print paths_i.sum(axis=0)
-    paths_i_ulim = np.cumsum(paths_i,axis=0)
-    paths_i_llim = np.zeros(paths_i_ulim.shape)
-    paths_i_llim[1:,:] = paths_i_ulim[:-1,:]
-    
-    paths_f_ulim = np.cumsum(paths_f,axis=0)
-    paths_f_llim = np.zeros(paths_f_ulim.shape)
-    paths_f_llim[1:,:] = paths_f_ulim[:-1,:]
+            
+    # Now deal with the path details
+    for cc1 in range(0,n_class):
+        for cc2 in range(0,n_class):
+            for tt in range(0,n_steps-1):
+                paths[cc1,cc2,tt] = np.sum(np.all((A[:,tt]==classes[cc1],A[:,tt+1]==classes[cc2]),axis=0))
 
-    # Now we have everything that we need to plot the diagram - first up the columns
+    # get starting ulim and llim for the paths
+    paths_vec = paths.reshape(n_class**2,n_steps-1)
+    paths_i_ulim = np.cumsum(paths_vec,axis=0)
+    paths_i_llim = paths_i_ulim-paths_vec
+
+    # now need to find the end ulim and llim
+    paths_f_increment = np.cumsum(paths,axis=0)
+    paths_f_u=np.zeros(paths.shape)
+    paths_f_l=np.zeros(paths.shape)
+    
+    for cc1 in range(0,n_class):
+        for cc2 in range(0,n_class):
+            paths_f_u[cc1,cc2,:] = class_llim[cc2,1:]+paths_f_increment[cc1,cc2,:]
+            paths_f_l[cc1,cc2,:] = paths_f_u[cc1,cc2,:]-paths[cc1,cc2,:]
+            
+    paths_f_ulim = paths_f_u.reshape(n_class**2,n_steps-1)
+    paths_f_llim = paths_f_l.reshape(n_class**2,n_steps-1)
+
+    # Now we have everything that we need to plot the diagram
+    # First we add the paths. These are going to be curved because it looks a lot nicer
+    # Will use a logistic function, which has a parameters:
+    # L = vertical difference between coordinates to be joined
+    # x0 = midpoint
+    # k = steepness of curve, which we start with as k=6
+    k=12.
+    for tt in range(0,n_steps-1):
+        t1 = x_locs[tt]
+        t2 = x_locs[tt+1]
+
+        # loop through the paths.
+        x = np.arange(t1,t2+(t2-t1)/1000.,(t2-t1)/1000.)
+        x0 = (t2+t1)/2.
+        y_prime = 1./(1.+np.exp(-k*(x-x0)))
+        # now plot connectors
+        for cc in range(0,n_class):    
+          for cc2 in range(0,n_class):
+            UL = paths_i_ulim[cc*n_class+cc2,tt]
+            LL = paths_i_llim[cc*n_class+cc2,tt]
+            
+            UR = paths_f_ulim[cc*n_class+cc2,tt]
+            LR = paths_f_llim[cc*n_class+cc2,tt]
+
+            L_u = UR-UL
+            upper_limit = UL + L_u*y_prime
+            
+            L_l = LR-LL
+            lower_limit = LL + L_l*y_prime
+            
+            # only print paths if flux > 0
+            if UL - LL > 0:
+                axis.fill_between(x,lower_limit,upper_limit,color='0.5',alpha=0.25)
+
+    # Next we add the columns
     # Loop through the number of steps
     patches = []
     for tt in range(0,n_steps):
@@ -114,33 +154,3 @@ def plot_sankey(A, x_locs = np.array([]), colours = np.array([]), colourmap = 'v
     
     p_class = PatchCollection(patches, match_original=True)
     axis.add_collection(p_class)
-
-    # Now we add the paths. These are going to be curved because it looks a lot nicer
-    # Will use a logistic function, which has a parameters:
-    # L = vertical difference between coordinates to be joined
-    # x0 = midpoint
-    # k = steepness of curve, which we start with as k=1
-    k=1.
-    for tt in range(0,n_steps-1):
-        t1 = x_locs[tt]
-        t2 = x_locs[tt+1]
-
-        # loop through the paths.
-        x = np.arange(t1,t2,0.1)
-        x0 = (t2+t1)/2.
-        y_prime = 1./(1.+np.exp(-k*(x-x0)))
-        # now plot connectors
-        for cc in range(0,n_class**2):
-            UL = paths_i_ulim[cc,tt]
-            LL = paths_i_llim[cc,tt]
-            UR = paths_f_ulim[cc,tt]
-            LR = paths_f_llim[cc,tt]
-
-            L_u = UR-UL
-            upper_limit = UL + L_u*y_prime
-            L_l = LR-LL
-            lower_limit = LL + L_l*y_prime
-            print t1,t2, UL, UR, LL, LR
-            axis.fill_between(x,lower_limit,upper_limit,color='0.5',alpha=0.25)
-            
-    return 0
