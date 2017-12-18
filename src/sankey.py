@@ -41,7 +41,7 @@ plt.register_cmap(name='magma', cmap=cmaps.magma)
 plt.set_cmap(cmaps.viridis)
 
 # This is the plotting script
-def plot_sankey(axis,A, x_locs = np.array([]), colours = np.array([]), colourmap = 'viridis', patch_width_fraction=0.1):
+def plot_sankey_from_class_timeseries(axis,A, x_locs = np.array([]), colours = np.array([]), colourmap = 'viridis', patch_width_fraction=0.1):
 
     colours_specified = True # will use colourmap if colours not specified
     if colours.size==0:
@@ -102,12 +102,21 @@ def plot_sankey(axis,A, x_locs = np.array([]), colours = np.array([]), colourmap
     paths_f_llim = paths_f_l.reshape(n_class**2,n_steps-1)
 
     # Now we have everything that we need to plot the diagram
+    plot_sankey(axis, class_ulim, class_llim, paths_i_ulim, paths_i_llim, paths_f_ulim, paths_f_llim, x_locs, colours, patch_width)
+
+
+
+
+    
+# This is the basic plotting script
+def plot_sankey (axis, class_ulim, class_llim, paths_i_ulim, paths_i_llim, paths_f_ulim, paths_f_llim, x_locs, colours, patch_width, k=12):
+    n_class,n_steps = class_ulim.shape
     # First we add the paths. These are going to be curved because it looks a lot nicer
     # Will use a logistic function, which has a parameters:
     # L = vertical difference between coordinates to be joined
     # x0 = midpoint
-    # k = steepness of curve, which we start with as k=6
-    k=12.
+    # k = steepness of curve, which we start with as k=12 as default parameter as it
+    # gives nice curves
     for tt in range(0,n_steps-1):
         t1 = x_locs[tt]
         t2 = x_locs[tt+1]
@@ -154,3 +163,4 @@ def plot_sankey(axis,A, x_locs = np.array([]), colours = np.array([]), colourmap
     
     p_class = PatchCollection(patches, match_original=True)
     axis.add_collection(p_class)
+    
