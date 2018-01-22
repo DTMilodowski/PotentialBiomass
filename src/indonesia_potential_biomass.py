@@ -31,7 +31,7 @@ import sankey
 #plt.show()
 
 SAVEDIR = '/home/dmilodow/DataStore_DTM/'
-NetCDF_file = '/disk/scratch/local.2/southeast_asia_PFB/southeast_asia_PFB_mean_WorldClim2.nc'
+NetCDF_file = '/disk/scratch/local.2/southeast_asia_PFB/southeast_asia_PFB_mean_WorldClim2_subset_additional.nc'
 ForestCover_file = '/home/dmilodow/DataStore_DTM/FOREST2020/PartnerCountries/Indonesia/ForestCover/Primary_and_intact_forest_and_loss/change/margono_indonesia_forestcover_and_loss_1km.tif'
 
 ds,geoTrans1 = EO.load_NetCDF(NetCDF_file,lat_var = 'lat', lon_var = 'lon')
