@@ -76,7 +76,11 @@ seqpot_ds[seqpot_ds<0] = 0.
 # 14  - Primary intact degraded 2005, cleared 2012
 # 15  - Primary intact degraded 2010, cleared 2012
 
+# for convenience with plotting, switch numbers so that primary forest = 1 and primary degraded forest = 2
 forestclass[forestclass==0]=np.nan
+forestclass[forestclass==2]=0
+forestclass[forestclass==1]=2
+forestclass[forestclass==0]=1
 
 # create land cover maps
 forestclass2000 = forestclass.copy()
@@ -87,80 +91,86 @@ forestclass2012 = forestclass.copy()
 # 2000
 intact = np.any((forestclass==4,forestclass==5,forestclass==6,forestclass==7,forestclass==8,forestclass==9,forestclass==13,forestclass==14,forestclass==15),axis=0)
 degraded = np.any((forestclass==10,forestclass==11,forestclass==12),axis=0)
-forestclass2000[intact]=2
-forestclass2000[degraded]=1
+forestclass2000[intact]=1
+forestclass2000[degraded]=2
 
 # 2005
 cleared = np.any((forestclass==4,forestclass==10),axis=0)
 intact = np.any((forestclass==5,forestclass==6,forestclass==8,forestclass==9,forestclass==15),axis=0)
 degraded = np.any((forestclass==7,forestclass==11,forestclass==12,forestclass==13,forestclass==14),axis=0)
-forestclass2005[intact]=2
-forestclass2005[degraded]=1
+forestclass2005[intact]=1
+forestclass2005[degraded]=2
 forestclass2005[cleared]=3
 
 # 2010
 cleared = np.any((forestclass==4,forestclass==5,forestclass==10,forestclass==11,forestclass==13),axis=0)
 intact = np.any((forestclass==6,forestclass==9),axis=0)
 degraded = np.any((forestclass==7,forestclass==8,forestclass==12,forestclass==14,forestclass==15),axis=0)
-forestclass2010[intact]=2
-forestclass2010[degraded]=1
+forestclass2010[intact]=1
+forestclass2010[degraded]=2
 forestclass2010[cleared]=3
 
 # 2012
 cleared = np.any((forestclass==4,forestclass==5,forestclass==6,forestclass==10,forestclass==11,forestclass==12,forestclass==13,forestclass==14,forestclass==15),axis=0)
 degraded = np.any((forestclass==7,forestclass==8,forestclass==9),axis=0)
-forestclass2012[degraded]=1
+forestclass2012[degraded]=2
 forestclass2012[cleared]=3
 
 print '====================================================================='
 print '\tland cover class areas in 1000s of km'
 print '---------------------------------------------------------------------'
 print 'year,\t\tintact,\t\tdegraded,\tcleared,\ttotal'
-print '2000,\t\t%.0f,\t\t%.0f,\t\t%.0f,\t\t%.0f' % (np.sum(forestclass2000==2)/1000.,np.sum(forestclass2000==1)/1000.,np.sum(forestclass2000==3)/1000.,np.sum(~np.isnan(forestclass2000)/1000.))
-print '2005,\t\t%.0f,\t\t%.0f,\t\t%.0f,\t\t%.0f' % (np.sum(forestclass2005==2)/1000.,np.sum(forestclass2005==1)/1000.,np.sum(forestclass2005==3)/1000.,np.sum(~np.isnan(forestclass2005)/1000.))
-print '2010,\t\t%.0f,\t\t%.0f,\t\t%.0f,\t\t%.0f' % (np.sum(forestclass2010==2)/1000.,np.sum(forestclass2010==1)/1000.,np.sum(forestclass2010==3)/1000.,np.sum(~np.isnan(forestclass2010)/1000.))
-print '2012,\t\t%.0f,\t\t%.0f,\t\t%.0f,\t\t%.0f' % (np.sum(forestclass2012==2)/1000.,np.sum(forestclass2012==1)/1000.,np.sum(forestclass2012==3)/1000.,np.sum(~np.isnan(forestclass2012)/1000.))
+print '2000,\t\t%.0f,\t\t%.0f,\t\t%.0f,\t\t%.0f' % (np.sum(forestclass2000==1)/1000.,np.sum(forestclass2000==2)/1000.,np.sum(forestclass2000==3)/1000.,np.sum(~np.isnan(forestclass2000)/1000.))
+print '2005,\t\t%.0f,\t\t%.0f,\t\t%.0f,\t\t%.0f' % (np.sum(forestclass2005==1)/1000.,np.sum(forestclass2005==2)/1000.,np.sum(forestclass2005==3)/1000.,np.sum(~np.isnan(forestclass2005)/1000.))
+print '2010,\t\t%.0f,\t\t%.0f,\t\t%.0f,\t\t%.0f' % (np.sum(forestclass2010==1)/1000.,np.sum(forestclass2010==2)/1000.,np.sum(forestclass2010==3)/1000.,np.sum(~np.isnan(forestclass2010)/1000.))
+print '2012,\t\t%.0f,\t\t%.0f,\t\t%.0f,\t\t%.0f' % (np.sum(forestclass2012==1)/1000.,np.sum(forestclass2012==2)/1000.,np.sum(forestclass2012==3)/1000.,np.sum(~np.isnan(forestclass2012)/1000.))
 print '====================================================================='
 
 print '====================================================================='
 print '\tpotential biomass within each class, in 10^6 Mg C'
 print '---------------------------------------------------------------------'
 print 'year,\t\tintact,\t\tdegraded,\tcleared,\ttotal'
-print '2000,\t\t%.0f,\t\t%.0f,\t\t%.0f,\t\t%.0f' % (np.sum(agbpot_ds[forestclass2000==2])/10.**6.,np.sum(agbpot_ds[forestclass2000==1])/10.**6.,np.sum(agbpot_ds[forestclass2000==3])/10.**6.,np.sum(agbpot_ds/10.**6))
-print '2005,\t\t%.0f,\t\t%.0f,\t\t%.0f,\t\t%.0f' % (np.sum(agbpot_ds[forestclass2005==2])/10.**6.,np.sum(agbpot_ds[forestclass2005==1])/10.**6.,np.sum(agbpot_ds[forestclass2005==3])/10.**6.,np.sum(agbpot_ds/10.**6.))
-print '2010,\t\t%.0f,\t\t%.0f,\t\t%.0f,\t\t%.0f' % (np.sum(agbpot_ds[forestclass2010==2])/10.**6.,np.sum(agbpot_ds[forestclass2010==1])/10.**6.,np.sum(agbpot_ds[forestclass2010==3])/10.**6.,np.sum(agbpot_ds/10.**6.))
-print '2012,\t\t%.0f,\t\t%.0f,\t\t%.0f,\t\t%.0f' % (np.sum(agbpot_ds[forestclass2012==2])/10.**6.,np.sum(agbpot_ds[forestclass2012==1])/10.**6.,np.sum(agbpot_ds[forestclass2012==3])/10.**6.,np.sum(agbpot_ds/10.**6.))
+print '2000,\t\t%.0f,\t\t%.0f,\t\t%.0f,\t\t%.0f' % (np.sum(agbpot_ds[forestclass2000==1])/10.**6.,np.sum(agbpot_ds[forestclass2000==2])/10.**6.,np.sum(agbpot_ds[forestclass2000==3])/10.**6.,np.sum(agbpot_ds/10.**6))
+print '2005,\t\t%.0f,\t\t%.0f,\t\t%.0f,\t\t%.0f' % (np.sum(agbpot_ds[forestclass2005==1])/10.**6.,np.sum(agbpot_ds[forestclass2005==2])/10.**6.,np.sum(agbpot_ds[forestclass2005==3])/10.**6.,np.sum(agbpot_ds/10.**6.))
+print '2010,\t\t%.0f,\t\t%.0f,\t\t%.0f,\t\t%.0f' % (np.sum(agbpot_ds[forestclass2010==1])/10.**6.,np.sum(agbpot_ds[forestclass2010==2])/10.**6.,np.sum(agbpot_ds[forestclass2010==3])/10.**6.,np.sum(agbpot_ds/10.**6.))
+print '2012,\t\t%.0f,\t\t%.0f,\t\t%.0f,\t\t%.0f' % (np.sum(agbpot_ds[forestclass2012==1])/10.**6.,np.sum(agbpot_ds[forestclass2012==2])/10.**6.,np.sum(agbpot_ds[forestclass2012==3])/10.**6.,np.sum(agbpot_ds/10.**6.))
 print '====================================================================='
 
 print '====================================================================='
 print ' AGB deficit within each class, in 10^6 Mg C (2005 only)'
 print '---------------------------------------------------------------------'
 print 'year,\t\tintact,\t\tdegraded,\tcleared,\ttotal'
-print '2005,\t\t%.0f,\t\t%.0f,\t\t%.0f,\t\t%.0f' % (np.sum(agbdef_ds[forestclass2005==2])/10.**6.,np.sum(agbdef_ds[forestclass2005==1])/10.**6.,np.sum(agbdef_ds[forestclass2005==3])/10.**6.,np.sum(agbdef_ds/10.**6.))
+print '2005,\t\t%.0f,\t\t%.0f,\t\t%.0f,\t\t%.0f' % (np.sum(agbdef_ds[forestclass2005==1])/10.**6.,np.sum(agbdef_ds[forestclass2005==2])/10.**6.,np.sum(agbdef_ds[forestclass2005==3])/10.**6.,np.sum(agbdef_ds/10.**6.))
 print '====================================================================='
+print ' AGB deficit density within each class, in Mg C km-2 (2005 only)'
+print '---------------------------------------------------------------------'
+print 'year,\t\tintact,\t\tdegraded,\tcleared,\ttotal'
+print '2005,\t\t%.0f,\t\t%.0f,\t\t%.0f,\t\t' % (np.sum(agbdef_ds[forestclass2005==1])/float(np.sum(forestclass2000==1)),np.sum(agbdef_ds[forestclass2005==2])/float(np.sum(forestclass2000==2)),np.sum(agbdef_ds[forestclass2005==3])/float(np.sum(forestclass2000==3)))
+print '====================================================================='
+
 
 print '====================================================================='
 print ' Average ratio of deficit to potential agb (2005 only)'
 print '---------------------------------------------------------------------'
 print 'year,\t\tintact,\t\tdegraded,\tcleared,\ttotal'
-print '2005,\t\t%.3f,\t\t%.3f,\t\t%.3f,\t\t%.3f' % (np.mean(agbratio_ds[forestclass2012==2]),np.mean(agbratio_ds[forestclass2012==1]),np.mean(agbratio_ds[forestclass2012==3]),np.mean(agbratio_ds[~np.isnan(forestclass2012)]))
+print '2005,\t\t%.3f,\t\t%.3f,\t\t%.3f,\t\t%.3f' % (np.mean(agbratio_ds[forestclass2012==1]),np.mean(agbratio_ds[forestclass2012==2]),np.mean(agbratio_ds[forestclass2012==3]),np.mean(agbratio_ds[~np.isnan(forestclass2012)]))
 print '====================================================================='
 
 
 # Plot sankey diagram!
 year = np.array([2000,2005,2010,2012])
-sankey_2000 = forestclass2000.reshape(forestclass2000.size)
+sankey_2000 = forestclass2000.ravel()
 sankey_2000 = sankey_2000[np.isfinite(sankey_2000)]
-sankey_2005 = forestclass2005.reshape(forestclass2005.size)
+sankey_2005 = forestclass2005.ravel()
 sankey_2005 = sankey_2005[np.isfinite(sankey_2005)]
-sankey_2010 = forestclass2010.reshape(forestclass2010.size)
+sankey_2010 = forestclass2010.ravel()
 sankey_2010 = sankey_2010[np.isfinite(sankey_2010)]
-sankey_2012 = forestclass2012.reshape(forestclass2012.size)
+sankey_2012 = forestclass2012.ravel()
 sankey_2012 = sankey_2012[np.isfinite(sankey_2012)]
 
 sankey_array = np.array([sankey_2000,sankey_2005,sankey_2010,sankey_2012]).transpose()
 
 fig = plt.figure(1, facecolor='White',figsize=[12,12]) 
 axis= plt.subplot2grid((1,1),(0,0))
-sankey. plot_sankey_from_class_timeseries(axis,sankey_array,x_locs=year)
+sankey.plot_sankey_from_class_timeseries(axis,sankey_array,x_locs=year)
 plt.show()
