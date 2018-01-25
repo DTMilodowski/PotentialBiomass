@@ -30,6 +30,8 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 from matplotlib import rcParams
 from matplotlib.patches import Polygon
 from matplotlib.collections import PatchCollection
+from matplotlib import colors as clr
+from matplotlib.collections import LineCollection
 
 # Get perceptionally uniform colourmaps
 sys.path.append('/home/dmilodow/DataStore_DTM/FOREST2020/EOdata/EO_data_processing/src/plot_EO_data/colormap/')
@@ -174,25 +176,25 @@ def plot_sankey_generic(axis,F, x_locs = np.array([]), colours = np.array([]), c
 
     
 # This is the basic plotting script
-def plot_sankey (axis, class_ulim, class_llim, paths_i_ulim, paths_i_llim, paths_f_ulim, paths_f_llim, x_locs, colours, patch_width, k=12):
+def plot_sankey (axis, class_ulim, class_llim, paths_i_ulim, paths_i_llim, paths_f_ulim, paths_f_llim, x_locs, colours, patch_width, k=20):
     n_class,n_steps = class_ulim.shape
     # First we add the paths. These are going to be curved because it looks a lot nicer
     # Will use a logistic function, which has a parameters:
     # L = vertical difference between coordinates to be joined
     # x0 = midpoint
-    # k = steepness of curve, which we start with as k=12 as default parameter as it
+    # k = steepness of curve, which we start with as k=20 as default parameter as it
     # gives nice curves
     for tt in range(0,n_steps-1):
-        t1 = x_locs[tt]
-        t2 = x_locs[tt+1]
+        t1 = x_locs[tt]+patch_width/2.
+        t2 = x_locs[tt+1]-patch_width/2.
 
         # loop through the paths.
-        x = np.arange(t1,t2+(t2-t1)/1000.,(t2-t1)/1000.)
+        x = np.arange(t1,t2+(t2-t1)/256.,(t2-t1)/256.)
         x0 = (t2+t1)/2.
-        y_prime = 1./(1.+np.exp(-k*(x-x0)))
+        y_prime = 1./(1.+np.exp(-k*(x-x0)/(t2-t1)))
         # now plot connectors
-        for cc in range(0,n_class):    
-          for cc2 in range(0,n_class):
+        for cc in range(0,n_class):
+            cc2 = cc
             UL = paths_i_ulim[cc*n_class+cc2,tt]
             LL = paths_i_llim[cc*n_class+cc2,tt]
             
@@ -207,7 +209,44 @@ def plot_sankey (axis, class_ulim, class_llim, paths_i_ulim, paths_i_llim, paths
             
             # only print paths if flux > 0
             if UL - LL > 0:
-                axis.fill_between(x,lower_limit,upper_limit,color='0.5',alpha=0.25)
+                # create temporary colour map to plot path
+                cmap_temp = clr.LinearSegmentedColormap.from_list('temp', [colours[cc],colours[cc2]], N=256)
+                normalize = clr.Normalize(vmin=x.min(), vmax=x.max())
+                axis.fill_between(x, lower_limit ,upper_limit,color='0.5',alpha=0.25,linewidth=0.0)
+
+        for cc in range(0,n_class):    
+          for cc2 in range(0,n_class):
+              if cc!=cc2:
+                  UL = paths_i_ulim[cc*n_class+cc2,tt]
+                  LL = paths_i_llim[cc*n_class+cc2,tt]
+            
+                  UR = paths_f_ulim[cc*n_class+cc2,tt]
+                  LR = paths_f_llim[cc*n_class+cc2,tt]
+                  
+                  L_u = UR-UL
+                  upper_limit = UL + L_u*y_prime
+            
+                  L_l = LR-LL
+                  lower_limit = LL + L_l*y_prime
+            
+                  # only print paths if flux > 0
+                  if UL - LL > 0:
+                      # create temporary colour map to plot path
+                      cmap_temp = clr.LinearSegmentedColormap.from_list('temp', [colours[cc],colours[cc2]], N=256)
+                      normalize = clr.Normalize(vmin=x.min(), vmax=x.max())
+                      ul_points = np.array([x, upper_limit]).T.reshape(-1, 1, 2)
+                      ll_points = np.array([x, lower_limit]).T.reshape(-1, 1, 2)
+                      ul_segments = np.concatenate([ul_points[:-1], ul_points[1:]], axis=1)
+                      ll_segments = np.concatenate([ll_points[:-1], ll_points[1:]], axis=1)
+                      ul = LineCollection(ul_segments, cmap=cmap_temp, norm=normalize,zorder= 1)
+                      ul.set_array(x)
+                      axis.add_collection(ul)
+                      ll = LineCollection(ll_segments, cmap=cmap_temp, norm=normalize,zorder= 1)
+                      ll.set_array(x)
+                      axis.add_collection(ll)
+                      for i in range(x.size - 1):
+                          axis.fill_between([x[i],x[i+1]], [lower_limit[i],lower_limit[i+1]] ,[upper_limit[i],upper_limit[i+1]],color=cmap_temp(normalize(x[i])),alpha=0.75,linewidth=0.0)
+                    
 
     # Next we add the columns
     # Loop through the number of steps
@@ -226,6 +265,6 @@ def plot_sankey (axis, class_ulim, class_llim, paths_i_ulim, paths_i_llim, paths
             polygon = Polygon(box,True,ec='0.5',fc=colours[cc])
             patches.append(polygon)
     
-    p_class = PatchCollection(patches, match_original=True)
+    p_class = PatchCollection(patches, match_original=True,zorder=100)
     axis.add_collection(p_class)
     
